@@ -134,8 +134,8 @@ class Pipeline(StatefulBaseClass):
         fitnesses, updated_params = new_generation
         fitnesses = jnp.where(jnp.isnan(fitnesses), -jnp.inf, fitnesses)
         previous_pop = self.algorithm.ask(state)
-        new_pop_nodes = updated_params[0]
-        new_pop_conns = updated_params[1]
+        new_pop_nodes = updated_params[1]
+        new_pop_conns = updated_params[2]
         # jax.debug.print(fitnesses.shape)
         jax.debug.print("new_conns {}",new_pop_conns.shape)
         jax.debug.print("new_nodes {}",new_pop_nodes.shape)
