@@ -98,7 +98,8 @@ class Pipeline(StatefulBaseClass):
         pop_transformed = jax.vmap(self.algorithm.transform, in_axes=(None, 0))(
             state, pop
         )
-
+        print(pop_transformed[1].shape)
+        print(pop_transformed[2].shape)
         if not self.using_multidevice:
             keys = jax.random.split(randkey_, self.pop_size)
             fitnesses,updated_params = jax.vmap(self.problem.evaluate, in_axes=(None, 0, None, 0))(
@@ -126,13 +127,17 @@ class Pipeline(StatefulBaseClass):
             fitnesses = fitnesses.reshape(self.pop_size)
 
         # replace nan with -inf
-        jax.debug.print("fitness : {}",fitnesses.shape)
-        jax.debug.print("updated_params: {}",updated_params)
+        
+        # jax.debug.print("fitness : {}",fitnesses.shape)
+        # jax.debug.print("updated_params: {}",updated_params)
         fitnesses = jnp.where(jnp.isnan(fitnesses), -jnp.inf, fitnesses)
         previous_pop = self.algorithm.ask(state)
         new_pop_nodes = updated_params[0]
         new_pop_conns = updated_params[1]
-        state = self.algorithm.tell(state,new_pop_nodes,new_pop_conns, fitnesses)
+        print(fitnesses.shape)
+        print(new_pop_conns.shape)
+        print(new_pop_nodes.shape)
+        state = self.algorithm.tell(state, fitnesses)
           
         return state.update(randkey=randkey), previous_pop, fitnesses
 
