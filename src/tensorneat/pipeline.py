@@ -126,6 +126,8 @@ class Pipeline(StatefulBaseClass):
             fitnesses = fitnesses.reshape(self.pop_size)
 
         # replace nan with -inf
+        jax.debug.print("fitness : {}",fitnesses.shape)
+        jax.debug.print("updated_params: {}",updated_params)
         fitnesses = jnp.where(jnp.isnan(fitnesses), -jnp.inf, fitnesses)
         previous_pop = self.algorithm.ask(state)
         new_pop_nodes = updated_params[0]
