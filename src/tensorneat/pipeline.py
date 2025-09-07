@@ -102,9 +102,10 @@ class Pipeline(StatefulBaseClass):
         jax.debug.print("original_conns : {}",pop_transformed[2].shape)
         if not self.using_multidevice:
             keys = jax.random.split(randkey_, self.pop_size)
-            fitnesses,updated_params = jax.vmap(self.problem.evaluate, in_axes=(None, 0, None, 0))(
+            new_generation = jax.vmap(self.problem.evaluate, in_axes=(None, 0, None, 0))(
                 state, keys, self.algorithm.forward, pop_transformed
             )
+            
         else: # using_multidevice
             num_devices = jax.device_count()
             assert self.pop_size % num_devices == 0, "if you want to use multiple gpus, pop_size must be divisible by jax.device_count()"
@@ -116,20 +117,21 @@ class Pipeline(StatefulBaseClass):
                 pop_transformed
             )
 
-            fitnesses,updated_params = jax.pmap(
+            new_generation = jax.pmap(
                 lambda key_slice, pop_slice: jax.vmap(self.problem.evaluate, in_axes=(None, 0, None, 0))(
                     state, key_slice, self.algorithm.forward, pop_slice
                 ),
                 axis_name='devices',
                 in_axes=(0, 0)
             )(keys, split_pop_transformed)
-
+            fitnesses = new_generation[0]
             fitnesses = fitnesses.reshape(self.pop_size)
 
         # replace nan with -inf
         
         # jax.debug.print("fitness : {}",fitnesses.shape)
         # jax.debug.print("updated_params: {}",updated_params)
+        fitnesses, updated_params = new_generation
         fitnesses = jnp.where(jnp.isnan(fitnesses), -jnp.inf, fitnesses)
         previous_pop = self.algorithm.ask(state)
         new_pop_nodes = updated_params[0]
