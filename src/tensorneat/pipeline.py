@@ -101,7 +101,7 @@ class Pipeline(StatefulBaseClass):
 
         if not self.using_multidevice:
             keys = jax.random.split(randkey_, self.pop_size)
-            fitnesses = jax.vmap(self.problem.evaluate, in_axes=(None, 0, None, 0))(
+            fitnesses,updated_params = jax.vmap(self.problem.evaluate, in_axes=(None, 0, None, 0))(
                 state, keys, self.algorithm.forward, pop_transformed
             )
         else: # using_multidevice
@@ -115,7 +115,7 @@ class Pipeline(StatefulBaseClass):
                 pop_transformed
             )
 
-            fitnesses = jax.pmap(
+            fitnesses,updated_params = jax.pmap(
                 lambda key_slice, pop_slice: jax.vmap(self.problem.evaluate, in_axes=(None, 0, None, 0))(
                     state, key_slice, self.algorithm.forward, pop_slice
                 ),
@@ -127,10 +127,11 @@ class Pipeline(StatefulBaseClass):
 
         # replace nan with -inf
         fitnesses = jnp.where(jnp.isnan(fitnesses), -jnp.inf, fitnesses)
-
         previous_pop = self.algorithm.ask(state)
-        state = self.algorithm.tell(state, fitnesses)
-
+        new_pop_nodes = updated_params[0]
+        new_pop_conns = updated_params[1]
+        state = self.algorithm.tell(state,new_pop_nodes,new_pop_conns, fitnesses)
+          
         return state.update(randkey=randkey), previous_pop, fitnesses
 
     def auto_run(self, state):
