@@ -8,7 +8,7 @@ import numpy as np
 
 from tensorneat.algorithm import BaseAlgorithm
 from tensorneat.problem import BaseProblem
-from tensorneat.common import State, StatefulBaseClass
+from tensorneat.common import State, StatefulBaseClass  #<-Investigate self.analysis in this class.
 
 
 class Pipeline(StatefulBaseClass):
@@ -102,6 +102,7 @@ class Pipeline(StatefulBaseClass):
         # jax.debug.print("original_conns : {}",pop_transformed[2].shape)
         if not self.using_multidevice:
             keys = jax.random.split(randkey_, self.pop_size)
+            # Customized
             new_generation = jax.vmap(self.problem.evaluate, in_axes=(None, 0, None, 0))(
                 state, keys, self.algorithm.forward, pop_transformed
             )
@@ -116,7 +117,7 @@ class Pipeline(StatefulBaseClass):
                 lambda x: x.reshape(num_devices, pop_size_per_device, *x.shape[1:]),
                 pop_transformed
             )
-
+            #Customized
             new_generation = jax.pmap(
                 lambda key_slice, pop_slice: jax.vmap(self.problem.evaluate, in_axes=(None, 0, None, 0))(
                     state, key_slice, self.algorithm.forward, pop_slice
@@ -131,6 +132,7 @@ class Pipeline(StatefulBaseClass):
         
         # jax.debug.print("fitness : {}",fitnesses.shape)
         # jax.debug.print("updated_params: {}",updated_params)
+        #Customized
         fitnesses, updated_params = new_generation
         fitnesses = jnp.where(jnp.isnan(fitnesses), -jnp.inf, fitnesses)
         previous_pop = self.algorithm.ask(state)
@@ -142,6 +144,7 @@ class Pipeline(StatefulBaseClass):
         state = self.algorithm.tell(state, fitnesses)
         state = state.update(pop_nodes= new_pop_nodes)
         state = state.update(pop_conns = new_pop_conns)
+        #Customized
         return state.update(randkey=randkey), previous_pop, fitnesses
 
     def auto_run(self, state):
