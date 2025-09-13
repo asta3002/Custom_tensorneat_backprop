@@ -219,10 +219,10 @@ class DefaultMutation(BaseMutation):
 
         def nothing(_, nodes_, conns_):
             return nodes_, conns_
-        jax.debug.print("r1 :{}",r1)
-        jax.debug.print("r2 :{}",r1)
-        jax.debug.print("r3 :{}",r1)
-        jax.debug.print("r4 :{}",r1)
+        # jax.debug.print("r1 :{}",r1)
+        # jax.debug.print("r2 :{}",r1)
+        # jax.debug.print("r3 :{}",r1)
+        # jax.debug.print("r4 :{}",r1)
 
 
         if self.node_add > 0:
