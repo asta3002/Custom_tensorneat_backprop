@@ -76,7 +76,7 @@ class NEAT(BaseAlgorithm):
 
     def tell(self, state,  fitness):
         state = state.update(generation=state.generation + 1)
-
+        
         # tell fitness to species controller
         state, winner, loser, elite_mask = self.species_controller.update_species(
             state,

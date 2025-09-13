@@ -141,9 +141,10 @@ class Pipeline(StatefulBaseClass):
         # jax.debug.print(fitnesses.shape)
         # jax.debug.print("new_conns {}",new_pop_conns.shape)
         # jax.debug.print("new_nodes {}",new_pop_nodes.shape)
-        state = self.algorithm.tell(state, fitnesses)
         state = state.update(pop_nodes= new_pop_nodes)
         state = state.update(pop_conns = new_pop_conns)
+        state = self.algorithm.tell(state, fitnesses)
+        
         #Customized
         return state.update(randkey=randkey), previous_pop, fitnesses
 

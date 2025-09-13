@@ -46,7 +46,7 @@ class DefaultMutation(BaseMutation):
         nodes, conns = self.mutate_structure(
             state, genome, k1, nodes, conns, new_node_key, new_conn_key
         )
-        nodes, conns = self.mutate_values(state, genome, k2, nodes, conns)
+        #nodes, conns = self.mutate_values(state, genome, k2, nodes, conns)
 
         return nodes, conns
 
@@ -219,6 +219,11 @@ class DefaultMutation(BaseMutation):
 
         def nothing(_, nodes_, conns_):
             return nodes_, conns_
+        jax.debug.print("r1 :{}",r1)
+        jax.debug.print("r2 :{}",r1)
+        jax.debug.print("r3 :{}",r1)
+        jax.debug.print("r4 :{}",r1)
+
 
         if self.node_add > 0:
             nodes, conns = jax.lax.cond(

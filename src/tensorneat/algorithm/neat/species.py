@@ -337,7 +337,7 @@ class SpeciesController(StatefulBaseClass):
         p_idx = jnp.arange(self.pop_size)
 
         def aux_func(key, idx):
-            # choose parents from the in the same species
+            # choose parents from in the same species
             # key -> randkey, idx -> the idx of current species
 
             members = species_state.idx2species == species_state.species_keys[idx]
@@ -376,7 +376,7 @@ class SpeciesController(StatefulBaseClass):
         # winner, loser, elite_mask: (self.pop_size)
         # winner -> winner indices, loser -> loser indices, elite_mask -> whether elite or not
         spawn_number_cum = jnp.cumsum(spawn_number)
-
+        
         def aux_func(idx):
             loc = jnp.argmax(idx < spawn_number_cum)
 
