@@ -135,7 +135,7 @@ class Pipeline(StatefulBaseClass):
         #Customized
         fitnesses, updated_params = new_generation
         fitnesses = jnp.where(jnp.isnan(fitnesses), -jnp.inf, fitnesses)
-        previous_pop = self.algorithm.ask(state)
+        # previous_pop = self.algorithm.ask(state) # 11/10/2025-Update with new pop instead of old pop"
         new_pop_nodes = updated_params[1]
         new_pop_conns = updated_params[2]
         # jax.debug.print(fitnesses.shape)
@@ -143,10 +143,11 @@ class Pipeline(StatefulBaseClass):
         # jax.debug.print("new_nodes {}",new_pop_nodes.shape)
         state = state.update(pop_nodes= new_pop_nodes)
         state = state.update(pop_conns = new_pop_conns)
+        previous_pop_optimized  = self.algorithm.ask(state)
         state = self.algorithm.tell(state, fitnesses)
         
         #Customized
-        return state.update(randkey=randkey), previous_pop, fitnesses
+        return state.update(randkey=randkey), previous_pop_optimized, fitnesses
 
     def auto_run(self, state):
         print("start compile")
@@ -237,7 +238,7 @@ class Pipeline(StatefulBaseClass):
             # append log
             with open(os.path.join(self.save_dir, "log.txt"), "a") as f:
                 f.write(f"{generation},{max_f},{min_f},{mean_f},{std_f},{cost_time}\n")
-
+        
         print(
             f"Generation: {generation}, Cost time: {cost_time * 1000:.2f}ms\n",
             f"\tfitness: valid cnt: {len(valid_fitnesses)}, max: {max_f:.4f}, min: {min_f:.4f}, mean: {mean_f:.4f}, std: {std_f:.4f}\n",
