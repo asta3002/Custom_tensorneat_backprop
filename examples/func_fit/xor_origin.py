@@ -1,4 +1,4 @@
-from tensorneat.pipeline import Pipeline
+from tensorneat.backprop_pipeline import Pipeline
 from tensorneat import algorithm, genome, problem
 from tensorneat.genome import OriginNode, OriginConn
 from tensorneat.common import ACT

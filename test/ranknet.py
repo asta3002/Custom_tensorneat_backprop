@@ -1,6 +1,6 @@
 # import RankNet
 from tensorneat import algorithm, genome, common
-from tensorneat.pipeline import Pipeline
+from tensorneat.backprop_pipeline import Pipeline
 from tensorneat.genome import BiasNode
 from tensorneat.genome.operations import mutation
 from tensorneat.common import ACT, AGG

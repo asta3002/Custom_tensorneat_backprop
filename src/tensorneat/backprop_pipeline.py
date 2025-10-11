@@ -8,10 +8,10 @@ import numpy as np
 
 from tensorneat.algorithm import BaseAlgorithm
 from tensorneat.problem import BaseProblem
-from tensorneat.common import State, StatefulBaseClass
+from tensorneat.common import State, StatefulBaseClass  #<-Investigate self.analysis in this class.
 
 
-class Pipeline(StatefulBaseClass):
+class BackpropPipeline(StatefulBaseClass):
     def __init__(
         self,
         algorithm: BaseAlgorithm,
@@ -98,12 +98,15 @@ class Pipeline(StatefulBaseClass):
         pop_transformed = jax.vmap(self.algorithm.transform, in_axes=(None, 0))(
             state, pop
         )
-
+        # jax.debug.print("original_nodes :{}",pop_transformed[1].shape)
+        # jax.debug.print("original_conns : {}",pop_transformed[2].shape)
         if not self.using_multidevice:
             keys = jax.random.split(randkey_, self.pop_size)
-            fitnesses = jax.vmap(self.problem.evaluate, in_axes=(None, 0, None, 0))(
+            # Customized
+            new_generation = jax.vmap(self.problem.evaluate, in_axes=(None, 0, None, 0))(
                 state, keys, self.algorithm.forward, pop_transformed
             )
+            
         else: # using_multidevice
             num_devices = jax.device_count()
             assert self.pop_size % num_devices == 0, "if you want to use multiple gpus, pop_size must be divisible by jax.device_count()"
@@ -114,24 +117,37 @@ class Pipeline(StatefulBaseClass):
                 lambda x: x.reshape(num_devices, pop_size_per_device, *x.shape[1:]),
                 pop_transformed
             )
-
-            fitnesses = jax.pmap(
+            #Customized
+            new_generation = jax.pmap(
                 lambda key_slice, pop_slice: jax.vmap(self.problem.evaluate, in_axes=(None, 0, None, 0))(
                     state, key_slice, self.algorithm.forward, pop_slice
                 ),
                 axis_name='devices',
                 in_axes=(0, 0)
             )(keys, split_pop_transformed)
-
+            fitnesses = new_generation[0]
             fitnesses = fitnesses.reshape(self.pop_size)
 
         # replace nan with -inf
+        
+        # jax.debug.print("fitness : {}",fitnesses.shape)
+        # jax.debug.print("updated_params: {}",updated_params)
+        #Customized
+        fitnesses, updated_params = new_generation
         fitnesses = jnp.where(jnp.isnan(fitnesses), -jnp.inf, fitnesses)
-
-        previous_pop = self.algorithm.ask(state)
+        # previous_pop = self.algorithm.ask(state) # 11/10/2025-Update with new pop instead of old pop"
+        new_pop_nodes = updated_params[1]
+        new_pop_conns = updated_params[2]
+        # jax.debug.print(fitnesses.shape)
+        # jax.debug.print("new_conns {}",new_pop_conns.shape)
+        # jax.debug.print("new_nodes {}",new_pop_nodes.shape)
+        state = state.update(pop_nodes= new_pop_nodes)
+        state = state.update(pop_conns = new_pop_conns)
+        previous_pop_optimized  = self.algorithm.ask(state)
         state = self.algorithm.tell(state, fitnesses)
-
-        return state.update(randkey=randkey), previous_pop, fitnesses
+        
+        #Customized
+        return state.update(randkey=randkey), previous_pop_optimized, fitnesses
 
     def auto_run(self, state):
         print("start compile")
@@ -222,7 +238,7 @@ class Pipeline(StatefulBaseClass):
             # append log
             with open(os.path.join(self.save_dir, "log.txt"), "a") as f:
                 f.write(f"{generation},{max_f},{min_f},{mean_f},{std_f},{cost_time}\n")
-
+        
         print(
             f"Generation: {generation}, Cost time: {cost_time * 1000:.2f}ms\n",
             f"\tfitness: valid cnt: {len(valid_fitnesses)}, max: {max_f:.4f}, min: {min_f:.4f}, mean: {mean_f:.4f}, std: {std_f:.4f}\n",

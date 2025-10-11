@@ -1,6 +1,6 @@
 import jax
 import numpy as np
-from tensorneat.pipeline import Pipeline
+from tensorneat.backprop_pipeline import Pipeline
 from tensorneat import algorithm, genome, problem
 from tensorneat.common import ACT
 

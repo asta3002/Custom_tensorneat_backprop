@@ -25,11 +25,13 @@ class DefaultMutation(BaseMutation):
         conn_delete: float = 0.2,
         node_add: float = 0.1,
         node_delete: float = 0.1,
+        is_backprop: bool =False,
     ):
         self.conn_add = conn_add
         self.conn_delete = conn_delete
         self.node_add = node_add
         self.node_delete = node_delete
+        self.is_backprop = is_backprop
 
     def __call__(
         self, state, genome, randkey, nodes, conns, new_node_key, new_conn_key
@@ -46,7 +48,8 @@ class DefaultMutation(BaseMutation):
         nodes, conns = self.mutate_structure(
             state, genome, k1, nodes, conns, new_node_key, new_conn_key
         )
-        #nodes, conns = self.mutate_values(state, genome, k2, nodes, conns)
+        if(not self.is_backprop):
+            nodes, conns = self.mutate_values(state, genome, k2, nodes, conns)
 
         return nodes, conns
 

@@ -1,7 +1,7 @@
 ###this code will throw a ValueError
 import numpy as np
 from tensorneat import algorithm, genome, common
-from tensorneat.pipeline import Pipeline
+from tensorneat.backprop_pipeline import Pipeline
 from tensorneat.genome.gene.node import DefaultNode
 from tensorneat.genome.gene.conn import DefaultConn
 from tensorneat.genome.operations import mutation
