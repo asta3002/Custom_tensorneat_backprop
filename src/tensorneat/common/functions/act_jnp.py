@@ -55,3 +55,11 @@ def exp_(z):
 
 def abs_(z):
     return jnp.abs(z)
+
+def gaussian_(z):
+    """Bell curve - good for localized responses"""
+    return jnp.exp(-z**2)
+
+def softplus_(z):
+    """Smooth approximation of ReLU"""
+    return jnp.log(1 + jnp.exp(z))

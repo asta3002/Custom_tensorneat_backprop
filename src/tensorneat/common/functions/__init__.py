@@ -19,6 +19,8 @@ act_name2jnp = {
     "log": log_,
     "exp": exp_,
     "abs": abs_,
+    "gaussian":gaussian_,
+    "softplus":softplus_,
 }
 
 act_name2sympy = {
